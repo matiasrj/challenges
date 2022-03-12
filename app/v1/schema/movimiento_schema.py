@@ -22,3 +22,7 @@ class MovimientoDetailModel(BaseModel):
         ...,
         example=123.32
     )
+    importe_total: float = Field( 
+        None,  
+        example=123.32
+    )

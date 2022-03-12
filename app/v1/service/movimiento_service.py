@@ -45,11 +45,14 @@ def create_movimiento(client_id:int , movimiento_detalle: movimiento_schema.Movi
                                                     )
     movimiento_detalle_db.save()
 
+    importe_total = float(movimiento_detalle_db.get_total())
+    
     return  movimiento_schema.MovimientoDetailModel(
         id = movimiento_detalle_db.id,
         tipo = movimiento_detalle_db.tipo,
         importe = movimiento_detalle_db.importe ,
-        movimiento= movimiento_detalle_db.movimiento.id)
+        movimiento= movimiento_detalle_db.movimiento.id,
+        importe_total=importe_total)
     
     
 def list_movimientos(client_id:int):
@@ -67,10 +70,8 @@ def list_movimientos(client_id:int):
 
 def get_movimiento(client_id:int, mov_id : int):
     movimiento_ob = MovimientoModel.select().where(MovimientoModel.id== mov_id, MovimientoModel.cliente == client_id).first()
-    
+
     mov_detalle = MovimientoDetalle.select().where(MovimientoDetalle.movimiento == movimiento_ob.id).first()
-    print('aqwe')
-    print (type(movimiento_ob.id))
     if not mov_detalle:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -80,7 +81,8 @@ def get_movimiento(client_id:int, mov_id : int):
     resp = movimiento_schema.MovimientoDetailModel(id = mov_detalle.id,
                                                     movimiento =movimiento_ob.id,
                                                     tipo= mov_detalle.tipo,
-                                                    importe= mov_detalle.importe)
+                                                    importe= mov_detalle.importe,
+                                                    )
 
     # resp='asd'
     return ({"status_code":status.HTTP_200_OK,

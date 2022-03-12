@@ -17,6 +17,6 @@ class Settings(BaseSettings):
     @property 
     def db_name(self):
         if os.getenv('RUN_ENV') == 'test':
-            return 'test_' + self._db_name
+            return 'test_' + self._db_name + 'b'
 
         return self._db_name
