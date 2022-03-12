@@ -9,8 +9,12 @@ from app.v1.service import client_service
 
 from app.v1.utils.db import get_db
 
+from .movimiento_router import router as movimiento_router
 
 router = APIRouter(prefix="/api/v1/client")
+
+#incluyo movimientos
+router.include_router(movimiento_router,prefix="/{client_id}")
 
 @router.post(
     "/",

@@ -1,6 +1,5 @@
-import black
 import peewee
-from app.v1.model.movimiento import Movimiento
+from app.v1.model.movimiento_model import Movimiento
 
 from app.v1.utils.db import db
 

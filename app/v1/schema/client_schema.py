@@ -5,7 +5,7 @@ from pydantic import EmailStr
 class ClientModel(BaseModel):
     id: int = Field(
         ...,
-        example="5"
+        example=3
     ),
     email: EmailStr = Field(
         ...,
