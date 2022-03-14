@@ -72,3 +72,23 @@ def get_movimiento(client_id:int, mov_id:int):
     - movimiento: Movimiento info
     """
     return movimiento_service.get_movimiento(client_id, mov_id)
+
+@router.delete(
+    "/{mov_id}",
+    tags=["movimientos"],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(get_db)],
+    summary="Delete movimiento"
+)
+def delete_movimiento(client_id:int, mov_id:int):
+    """
+    ## return detail of mov in the app
+
+    ### Args
+    The app can recive next fields into a JSON
+    ### Returns
+    - movimiento: Movimiento info
+    """
+    return movimiento_service.delete_movimiento(client_id, mov_id)
+
+

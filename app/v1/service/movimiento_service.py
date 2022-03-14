@@ -9,6 +9,7 @@ from app.v1.model.movimiento_model import Movimiento as MovimientoModel
 from app.v1.schema import movimiento_schema
 from app.v1.schema.movimiento_schema import MovimientoDetailModel
 from app.v1.model.movimiento_detalle_model import MovimientoDetalle
+from app.v1.model.cuenta_model import Cuenta
 
 
 def create_movimiento(client_id:int , movimiento_detalle: movimiento_schema.MovimientoDetailModel):
@@ -53,7 +54,77 @@ def create_movimiento(client_id:int , movimiento_detalle: movimiento_schema.Movi
         importe = movimiento_detalle_db.importe ,
         movimiento= movimiento_detalle_db.movimiento.id,
         importe_total=importe_total)
+
+def delete_movimiento(client_id: int, mov_id: int):
+    # Busco cliente
+    client = ClientModel.filter(ClientModel.id == client_id).first()
+
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no existe"
+        )
+
+    movimiento = MovimientoModel.filter( MovimientoModel.id == mov_id).first()
+    if not movimiento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Movimiento no existe"
+        )  
+
+    #Consulto movimiento detalle para identificar su importe.
+    movimiento_detalle = MovimientoDetalle.filter(MovimientoDetalle.movimiento_id == mov_id).first()
+    if not movimiento_detalle:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Movimiento detalle no existe"
+        )  
+
+    #Consulto cuenta par aver si tiene saldo suficiente.
+    cuenta_cliente = CuentaModel.filter(CuentaModel.cliente_id == client_id ).first()
+    if not cuenta_cliente:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cuenta cliente no existe"
+        )  
+
     
+    # Realizo Eliminación.
+    if movimiento_detalle.tipo:
+        # Si fué un ingreso:
+        if float(cuenta_cliente.saldo_disponible)  >= float(movimiento_detalle.importe):
+            cuenta_cliente.saldo_disponible = float(cuenta_cliente.saldo_disponible) - float(movimiento_detalle.importe)
+        # No puedo eliminar el ingreso, quedaría saldo negativo.
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se puede revertir la operacion en este momento. Saldo insuficimente"
+            ) 
+    else:
+        # Fue egreso
+            cuenta_cliente.saldo_disponible = float(cuenta_cliente.saldo_disponible) + float(movimiento_detalle.importe)
+
+
+    movimiento_detalle.delete_instance()
+    movimiento.delete_instance()
+    cuenta_cliente.save()
+
+    return ({"status_code":status.HTTP_200_OK,
+    "msg": 'Movimient eliminado con exito'})
+
+
+def get_cuenta(client_id: int):
+    cuenta = CuentaModel.filter(CuentaModel.cliente_id == client_id).first()
+
+    if not cuenta:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cuenta no existe para el cliente"
+        )
+
+    return ({"status_code":status.HTTP_200_OK,
+            "saldo" : cuenta.saldo_disponible})
+   
     
 def list_movimientos(client_id:int):
     movimientos = MovimientoModel.filter(MovimientoModel.cliente ==client_id )
